@@ -7,24 +7,36 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  :root{--navy:#0d1b30;--gold:#c9a24b;--ivory:#f7f3ea;--ink:#1c222b;--mut:#6e685a;--line:#e9e3d5;--ok:#1e8e4f;--bad:#c0392b}
+  :root{--navy:#0d1b30;--navy2:#12263f;--gold:#c9a24b;--ivory:#f7f3ea;--ink:#1c222b;--mut:#6e685a;--line:#e9e3d5;--ok:#1e8e4f;--bad:#c0392b}
   *{box-sizing:border-box;font-family:'Cairo',sans-serif}
   body{margin:0;background:var(--ivory);color:var(--ink)}
-  header{background:var(--navy);color:#fff;padding:18px 20px;border-bottom:5px solid var(--gold)}
-  header .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;max-width:1100px;margin:auto}
-  .brand{font-size:34px;font-weight:900}
-  .brand small{display:block;font-size:14px;color:var(--gold);font-weight:700}
-  .htitle{text-align:left}
-  .htitle b{font-size:20px;display:block}
-  .htitle span{color:#a8b8ce;font-size:13px}
-  main{max-width:1100px;margin:auto;padding:16px}
+  /* login */
+  #loginWrap{min-height:100vh;background:linear-gradient(160deg,var(--navy),var(--navy2));display:flex;align-items:center;justify-content:center;padding:18px}
+  .loginCard{background:#fff;border-radius:20px;max-width:420px;width:100%;padding:30px 26px;box-shadow:0 20px 50px rgba(0,0,0,.35);border-top:6px solid var(--gold)}
+  .loginCard .brand{font-size:42px;font-weight:900;color:var(--navy);text-align:center;line-height:1}
+  .loginCard .brand small{display:block;font-size:15px;color:var(--gold);font-weight:800;margin-top:4px}
+  .loginCard h1{font-size:19px;text-align:center;color:var(--ink);margin:14px 0 20px}
+  .loginCard label{font-weight:700;font-size:14px;color:var(--navy);display:block;margin:12px 0 5px}
+  .demoBox{background:#fdf6e0;border:1.5px dashed var(--gold);border-radius:12px;padding:10px 14px;font-size:14px;margin-top:18px;line-height:1.9}
+  /* app */
+  header{background:var(--navy);color:#fff;padding:14px 20px;border-bottom:5px solid var(--gold)}
+  header .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;max-width:1150px;margin:auto}
+  .brandS{font-size:28px;font-weight:900}.brandS small{font-size:12px;color:var(--gold);display:block;font-weight:700}
+  .userChip{display:flex;align-items:center;gap:10px}
+  .userChip .who{background:var(--navy2);border:1px solid #2b4562;border-radius:30px;padding:6px 14px;font-size:14px}
+  .userChip .who b{color:var(--gold)}
+  nav.tabs{background:#fff;box-shadow:0 2px 8px rgba(60,50,20,.08);position:sticky;top:0;z-index:500}
+  nav.tabs .in{max-width:1150px;margin:auto;display:flex;gap:4px;overflow-x:auto;padding:8px 12px}
+  nav.tabs button{background:none;border:0;padding:9px 16px;font-size:15px;font-weight:700;color:var(--mut);border-radius:10px;cursor:pointer;white-space:nowrap}
+  nav.tabs button.on{background:var(--navy);color:#fff}
+  main{max-width:1150px;margin:auto;padding:16px}
   .card{background:#fff;border-radius:16px;box-shadow:0 3px 10px rgba(60,50,20,.10);padding:16px;margin-bottom:16px}
   .card h2{margin:0 0 12px;font-size:20px;color:var(--navy);border-right:6px solid var(--gold);padding-right:10px}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
   .stat{background:#fff;border-radius:14px;box-shadow:0 3px 10px rgba(60,50,20,.10);padding:14px;text-align:center}
   .stat b{font-size:30px;display:block;color:var(--navy)}
   .stat span{color:var(--mut);font-size:14px}
-  .stat.ok b{color:var(--ok)} .stat.bad b{color:var(--bad)}
+  .stat.ok b{color:var(--ok)}.stat.bad b{color:var(--bad)}
   #map{height:320px;border-radius:12px;z-index:1}
   .locs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
   .loc{border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;background:#fff}
@@ -37,75 +49,170 @@
   table{width:100%;border-collapse:collapse}
   th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;font-size:15px}
   th{color:var(--navy)}
-  .chip{padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .chip{padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
   .chip.wait{background:#f3ead3;color:#8a6d1f}.chip.done{background:#e2f4e9;color:var(--ok)}.chip.miss{background:#fbe7e3;color:var(--bad)}
-  button{border:0;border-radius:9px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:14px}
+  .chip.role{background:#e8edf5;color:var(--navy)}.chip.off{background:#eee;color:#999}
+  button{border:0;border-radius:9px;padding:8px 15px;font-weight:700;cursor:pointer;font-size:14px}
   .b-ok{background:var(--ok);color:#fff}.b-bad{background:#fff;color:var(--bad);border:1.5px solid var(--bad)}
   .b-gold{background:var(--gold);color:#fff}.b-navy{background:var(--navy);color:#fff}
   .b-ghost{background:#fff;border:1.5px solid var(--line);color:var(--mut)}
+  .b-out{background:transparent;border:1.5px solid #2b4562;color:#fff}
   input,select{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-size:15px;background:#fff}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
   .scanrow{display:flex;gap:8px}.scanrow input{flex:1}
   .note{color:var(--mut);font-size:13px}
-  footer{background:var(--navy);color:#dfe6ef;text-align:center;padding:20px 14px;margin-top:8px;border-top:5px solid var(--gold)}
+  .impBox{border:2px dashed var(--gold);border-radius:14px;padding:18px;text-align:center;background:#fffdf6}
+  .hidden{display:none!important}
+  footer{background:var(--navy);color:#dfe6ef;text-align:center;padding:20px 14px;border-top:5px solid var(--gold)}
   footer .ph{color:#fff;font-weight:800;font-size:19px}
-  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)} th:nth-child(4),td:nth-child(4){display:none}}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
+
+<!-- ======= LOGIN ======= -->
+<div id="loginWrap">
+  <div class="loginCard">
+    <div class="brand">بوصلة<small>للحلول والخدمات والاستشارات</small></div>
+    <h1>نظام جرد الأصول الثابتة — تسجيل الدخول</h1>
+    <label>اسم المستخدم</label>
+    <input id="liUser" placeholder="اسم المستخدم">
+    <label>كلمة المرور</label>
+    <input id="liPass" type="password" placeholder="كلمة المرور">
+    <button class="b-gold" style="width:100%;margin-top:18px;padding:12px;font-size:16px" onclick="doLogin()">دخول</button>
+    <p class="note" id="liErr" style="color:var(--bad);text-align:center"></p>
+    <div class="demoBox">
+      <b>حسابات تجريبية للتجربة:</b><br>
+      مدير النظام: <b>admin</b> / admin123<br>
+      مشرف: <b>supervisor</b> / 1234<br>
+      موظف جرد: <b>counter</b> / 1234
+    </div>
+    <p class="note" style="text-align:center;margin-top:14px">© 2026 مكتب بوصلة — جميع الحقوق محفوظة</p>
+  </div>
+</div>
+
+<!-- ======= APP ======= -->
+<div id="appWrap" class="hidden">
 <header>
   <div class="row">
-    <div class="brand">بوصلة<small>للحلول والخدمات والاستشارات</small></div>
-    <div class="htitle"><b>نظام جرد الأصول الثابتة</b><span>نسخة تجريبية — شركة النور للتجارة (بيانات وهمية للتجربة)</span></div>
+    <div class="brandS">بوصلة<small>للحلول والخدمات والاستشارات</small></div>
+    <div class="userChip">
+      <div class="who">أهلاً، <b id="whoName"></b> — <span id="whoRole"></span></div>
+      <button class="b-out" onclick="doLogout()">خروج</button>
+    </div>
   </div>
 </header>
+<nav class="tabs"><div class="in" id="tabsBar"></div></nav>
 <main>
-  <div class="stats" style="margin-bottom:16px">
-    <div class="stat"><b id="stTotal">0</b><span>إجمالي الأصول</span></div>
-    <div class="stat ok"><b id="stDone">0</b><span>تم جردها</span></div>
-    <div class="stat"><b id="stWait">0</b><span>متبقية</span></div>
-    <div class="stat bad"><b id="stMiss">0</b><span>فروقات (غير موجود)</span></div>
-  </div>
-
-  <div class="card">
-    <h2>مواقع الشركة على الخريطة</h2>
-    <div id="map"></div>
-    <p class="note">كل موقع متعلم بإحداثيات GPS، وكل أصل مربوط بموقعه عشان الوصول له يوم الجرد يبقى مباشر.</p>
-  </div>
-
-  <div class="card">
-    <h2>مواقع الجرد</h2>
-    <div class="locs" id="locs"></div>
-  </div>
-
-  <div class="card">
-    <h2 id="assetsTitle">أصول الموقع</h2>
-    <div class="scanrow" style="margin-bottom:12px">
-      <input id="scanInput" placeholder="امسح كود التاج أو اكتبه هنا (مثال: FA-2026-0003) واضغط جرد">
-      <button class="b-gold" onclick="scanCode()">جرد بالكود</button>
+  <!-- Dashboard -->
+  <section id="view-dash">
+    <div class="stats">
+      <div class="stat"><b id="stTotal">0</b><span>إجمالي الأصول</span></div>
+      <div class="stat ok"><b id="stDone">0</b><span>تم جردها</span></div>
+      <div class="stat"><b id="stWait">0</b><span>متبقية</span></div>
+      <div class="stat bad"><b id="stMiss">0</b><span>فروقات (غير موجود)</span></div>
     </div>
-    <div style="overflow-x:auto">
-    <table>
-      <thead><tr><th>الكود</th><th>الأصل</th><th>المكان</th><th>التصنيف</th><th>الحالة</th><th>إجراء</th></tr></thead>
-      <tbody id="assetsBody"></tbody>
-    </table>
-    </div>
-  </div>
+    <div class="card"><h2>مواقع الشركة على الخريطة</h2><div id="map"></div>
+      <p class="note">كل موقع متعلم بإحداثيات GPS، وكل أصل مربوط بموقعه لتسهيل الوصول إليه يوم الجرد.</p></div>
+    <div class="card"><h2>تقدم الجرد حسب الموقع</h2><div class="locs" id="locsDash"></div></div>
+  </section>
 
-  <div class="card">
-    <h2>إضافة أصل جديد</h2>
-    <div class="grid">
-      <input id="fName" placeholder="اسم الأصل (مثال: لابتوب HP)">
-      <input id="fCat" placeholder="التصنيف (مثال: أجهزة كمبيوتر)">
-      <input id="fRoom" placeholder="الدور / الأوضة (مثال: الدور الثاني - الحسابات)">
-      <select id="fLoc"></select>
+  <!-- Counting -->
+  <section id="view-count" class="hidden">
+    <div class="card"><h2>اختيار موقع الجرد</h2><div class="locs" id="locsCount"></div></div>
+    <div class="card"><h2 id="assetsTitle">أصول الموقع</h2>
+      <div class="scanrow" style="margin-bottom:12px">
+        <input id="scanInput" placeholder="امسح كود التاج أو اكتبه هنا (مثال: FA-2026-0003)">
+        <button class="b-gold" onclick="scanCode()">جرد بالكود</button>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>الكود</th><th>الأصل</th><th>المكان</th><th>التصنيف</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="assetsBody"></tbody>
+      </table></div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="b-navy" onclick="captureGPS()">📍 التقاط موقع GPS الحالي</button>
-      <button class="b-gold" onclick="addAsset()">إضافة الأصل</button>
-      <span class="note" id="gpsNote" style="align-self:center">لو ضغطت التقاط الموقع وانت واقف عند الأصل، هيتسجل مكانه بالظبط على الخريطة.</span>
+    <div class="card"><h2>إضافة أصل من الميدان</h2>
+      <div class="grid">
+        <input id="fName" placeholder="اسم الأصل (مثال: لابتوب HP)">
+        <input id="fCat" placeholder="التصنيف (مثال: أجهزة كمبيوتر)">
+        <input id="fRoom" placeholder="الدور / الأوضة">
+        <select id="fLoc"></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="b-navy" onclick="captureGPS()">📍 التقاط موقع GPS الحالي</button>
+        <button class="b-gold" onclick="addAsset()">إضافة الأصل</button>
+        <span class="note" id="gpsNote" style="align-self:center"></span>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Import / Opening balance -->
+  <section id="view-import" class="hidden">
+    <div class="card"><h2>رفع الرصيد الافتتاحي للأصول والأكواد</h2>
+      <p>سجل أصول العميل الحالي (الأكواد والأرصدة) بيترفع مرة واحدة في بداية المشروع من ملف إكسيل، والنظام يبني منه سجل الجرد جاهزاً. الأعمدة المطلوبة: <b>الكود — اسم الأصل — التصنيف — الموقع — الدور/الأوضة</b></p>
+      <div class="impBox">
+        <p style="margin:0 0 12px"><b>١)</b> حمّل قالب الإكسيل الجاهز واملأه ببيانات العميل</p>
+        <button class="b-navy" onclick="downloadTemplate()">⬇ تحميل قالب الرفع (Excel)</button>
+        <p style="margin:16px 0 12px"><b>٢)</b> ارفع الملف بعد ملئه وسيتم إنشاء الأصول والأكواد فوراً</p>
+        <input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="max-width:420px;margin:auto">
+        <div style="margin-top:12px"><button class="b-gold" onclick="doImport()">رفع الرصيد الافتتاحي</button></div>
+        <p class="note" id="impMsg"></p>
+      </div>
+    </div>
+    <div class="card"><h2>تقارير وتصدير</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="b-navy" onclick="exportRegister()">⬇ تصدير سجل الأصول (Excel)</button>
+        <button class="b-gold" onclick="exportDiff()">⬇ تصدير تقرير الفروقات (Excel)</button>
+      </div>
+      <p class="note">سجل الأصول = كل الأصول بحالتها الحالية. تقرير الفروقات = الأصول غير الموجودة وما لم يتم جرده بعد.</p>
+    </div>
+  </section>
+
+  <!-- Users (admin) -->
+  <section id="view-users" class="hidden">
+    <div class="card"><h2>إدارة المستخدمين</h2>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table></div>
+    </div>
+    <div class="card"><h2>إضافة مستخدم جديد</h2>
+      <div class="grid">
+        <input id="uName" placeholder="الاسم الكامل">
+        <input id="uUser" placeholder="اسم المستخدم (إنجليزي)">
+        <input id="uPass" placeholder="كلمة المرور">
+        <select id="uRole">
+          <option value="admin">مدير نظام — تحكم كامل</option>
+          <option value="sup">مشرف — متابعة ورفع أرصدة وتقارير</option>
+          <option value="counter" selected>موظف جرد — تنفيذ الجرد فقط</option>
+        </select>
+      </div>
+      <div style="margin-top:12px"><button class="b-gold" onclick="addUser()">إضافة المستخدم</button>
+      <span class="note" id="uMsg"></span></div>
+    </div>
+  </section>
+
+  <!-- Locations (admin/sup) -->
+  <section id="view-locs" class="hidden">
+    <div class="card"><h2>مواقع الشركة</h2>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>الموقع</th><th>العنوان</th><th>عدد الأصول</th><th>إحداثيات GPS</th></tr></thead>
+        <tbody id="locsBody"></tbody>
+      </table></div>
+    </div>
+    <div class="card"><h2>إضافة موقع جديد</h2>
+      <div class="grid">
+        <input id="lName" placeholder="اسم الموقع (مثال: فرع المعادي)">
+        <input id="lAddr" placeholder="العنوان">
+        <input id="lLat" placeholder="خط العرض (اختياري)">
+        <input id="lLng" placeholder="خط الطول (اختياري)">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="b-navy" onclick="captureLocGPS()">📍 استخدام موقعي الحالي</button>
+        <button class="b-gold" onclick="addLocation()">إضافة الموقع</button>
+        <span class="note" id="lMsg" style="align-self:center"></span>
+      </div>
+    </div>
+  </section>
 
   <div style="text-align:center;margin:6px 0 14px">
     <button class="b-ghost" onclick="resetDemo()">إعادة تعيين البيانات التجريبية</button>
@@ -116,15 +223,24 @@
   <div class="ph">01558387711</div>
   <div style="font-size:13px;color:#a8b8ce">تليفون وواتساب</div>
 </footer>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const KEY='bosala_demo_v1';
+const KEY='bosala_demo_v2', SKEY='bosala_session_v2';
+const ROLES={admin:'مدير نظام',sup:'مشرف',counter:'موظف جرد'};
 const seed={
+  company:'شركة النور للتجارة (نموذج تجريبي)',
+  users:[
+    {u:'admin',p:'admin123',name:'مدير النظام',role:'admin',active:true},
+    {u:'supervisor',p:'1234',name:'مشرف الجرد',role:'sup',active:true},
+    {u:'counter',p:'1234',name:'أحمد — فريق الجرد',role:'counter',active:true}
+  ],
   locations:[
-    {id:'hq', name:'المقر الرئيسي — الجيزة', addr:'شارع الهرم، الجيزة', lat:30.0131, lng:31.2089},
-    {id:'faisal', name:'فرع فيصل', addr:'شارع فيصل الرئيسي، الجيزة', lat:29.9985, lng:31.1770},
-    {id:'oct', name:'مخزن 6 أكتوبر', addr:'المنطقة الصناعية، 6 أكتوبر', lat:29.9285, lng:30.9188}
+    {id:'hq',name:'المقر الرئيسي — الجيزة',addr:'شارع الهرم، الجيزة',lat:30.0131,lng:31.2089},
+    {id:'faisal',name:'فرع فيصل',addr:'شارع فيصل الرئيسي، الجيزة',lat:29.9985,lng:31.1770},
+    {id:'oct',name:'مخزن 6 أكتوبر',addr:'المنطقة الصناعية، 6 أكتوبر',lat:29.9285,lng:30.9188}
   ],
   assets:[
     {code:'FA-2026-0001',name:'لابتوب HP ProBook 450',cat:'أجهزة كمبيوتر',room:'الدور الثاني — الحسابات',loc:'hq',status:'wait'},
@@ -143,25 +259,60 @@ const seed={
 };
 let db;
 try{ db=JSON.parse(localStorage.getItem(KEY))||structuredClone(seed); }catch(e){ db=structuredClone(seed); }
-let selLoc=db.locations[0].id, map=null, markers=[], pendingGPS=null;
+let me=null, selLoc=db.locations[0].id, map=null, markers=[], pendingGPS=null, view='dash';
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
 function locName(id){ const l=db.locations.find(x=>x.id===id); return l?l.name:''; }
+function canImport(){ return me && (me.role==='admin'||me.role==='sup'); }
+function canUsers(){ return me && me.role==='admin'; }
+function canLocs(){ return me && (me.role==='admin'||me.role==='sup'); }
 
+/* ---------- auth ---------- */
+function doLogin(){
+  const u=liUser.value.trim().toLowerCase(), p=liPass.value;
+  const user=db.users.find(x=>x.u.toLowerCase()===u && x.p===p);
+  if(!user){ liErr.textContent='اسم المستخدم أو كلمة المرور غير صحيحة'; return; }
+  if(!user.active){ liErr.textContent='هذا الحساب موقوف — راجع مدير النظام'; return; }
+  me=user; localStorage.setItem(SKEY, user.u); liErr.textContent='';
+  enterApp();
+}
+function doLogout(){ me=null; localStorage.removeItem(SKEY); appWrap.classList.add('hidden'); loginWrap.classList.remove('hidden'); }
+function enterApp(){
+  loginWrap.classList.add('hidden'); appWrap.classList.remove('hidden');
+  whoName.textContent=me.name; whoRole.textContent=ROLES[me.role];
+  buildTabs(); showView(me.role==='counter'?'count':'dash'); render();
+}
+function buildTabs(){
+  const tabs=[['dash','لوحة المتابعة'],['count','تنفيذ الجرد']];
+  if(canImport()) tabs.push(['import','الرصيد الافتتاحي والتقارير']);
+  if(canLocs()) tabs.push(['locs','المواقع']);
+  if(canUsers()) tabs.push(['users','المستخدمون']);
+  tabsBar.innerHTML=tabs.map(t=>`<button data-v="${t[0]}" onclick="showView('${t[0]}')">${t[1]}</button>`).join('');
+}
+function showView(v){
+  view=v;
+  ['dash','count','import','users','locs'].forEach(x=>{
+    const el=document.getElementById('view-'+x); if(el) el.classList.toggle('hidden', x!==v);
+  });
+  document.querySelectorAll('#tabsBar button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  if(v==='dash') setTimeout(()=>{ if(map) map.invalidateSize(); drawMap(); },80);
+  render();
+}
+
+/* ---------- render ---------- */
 function render(){
+  if(!me) return;
   const total=db.assets.length, done=db.assets.filter(a=>a.status==='done').length,
         miss=db.assets.filter(a=>a.status==='miss').length;
   stTotal.textContent=total; stDone.textContent=done; stMiss.textContent=miss; stWait.textContent=total-done-miss;
-  // locations
-  locs.innerHTML=db.locations.map(l=>{
-    const la=db.assets.filter(a=>a.loc===l.id), ld=la.filter(a=>a.status==='done').length;
+  const locCard=(l,clk)=>{ const la=db.assets.filter(a=>a.loc===l.id), ld=la.filter(a=>a.status==='done').length;
     const pct=la.length?Math.round(ld/la.length*100):0;
-    return `<div class="loc ${l.id===selLoc?'sel':''}" onclick="selectLoc('${l.id}')">
+    return `<div class="loc ${l.id===selLoc?'sel':''}" ${clk?`onclick="selectLoc('${l.id}')"`:'onclick="selectLocGo(\''+l.id+'\')"'}>
       <b>${l.name}</b><div class="addr">${l.addr}</div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <div class="pct">تم جرد ${ld} من ${la.length} أصل — ${pct}%</div></div>`;
-  }).join('');
-  // assets of selected location
+      <div class="pct">تم جرد ${ld} من ${la.length} أصل — ${pct}%</div></div>`; };
+  locsDash.innerHTML=db.locations.map(l=>locCard(l,false)).join('');
+  locsCount.innerHTML=db.locations.map(l=>locCard(l,true)).join('');
   const l=db.locations.find(x=>x.id===selLoc);
   assetsTitle.textContent='أصول: '+(l?l.name:'');
   assetsBody.innerHTML=db.assets.filter(a=>a.loc===selLoc).map(a=>{
@@ -173,56 +324,151 @@ function render(){
         <button class="b-bad" onclick="setStatus('${a.code}','miss')">غير موجود</button>
         ${a.status!=='wait'?`<button class="b-ghost" onclick="setStatus('${a.code}','wait')">إعادة</button>`:''}
       </td></tr>`;
-  }).join('')||'<tr><td colspan="6">لا توجد أصول في هذا الموقع بعد</td></tr>';
-  // location select in form
+  }).join('')||'<tr><td colspan="6">لا توجد أصول في هذا الموقع بعد — ارفع الرصيد الافتتاحي أو أضف أصلاً من الميدان</td></tr>';
   fLoc.innerHTML=db.locations.map(x=>`<option value="${x.id}" ${x.id===selLoc?'selected':''}>${x.name}</option>`).join('');
+  if(canUsers()){
+    usersBody.innerHTML=db.users.map(x=>`<tr><td>${x.name}</td><td>${x.u}</td>
+      <td><span class="chip role">${ROLES[x.role]}</span></td>
+      <td>${x.active?'<span class="chip done">مفعّل</span>':'<span class="chip off">موقوف</span>'}</td>
+      <td style="white-space:nowrap">
+        ${x.u!==me.u?`<button class="b-ghost" onclick="toggleUser('${x.u}')">${x.active?'إيقاف':'تفعيل'}</button>
+        <button class="b-bad" onclick="delUser('${x.u}')">حذف</button>`:'<span class="note">حسابك الحالي</span>'}
+      </td></tr>`).join('');
+  }
+  if(canLocs()){
+    locsBody.innerHTML=db.locations.map(x=>{ const n=db.assets.filter(a=>a.loc===x.id).length;
+      return `<tr><td><b>${x.name}</b></td><td>${x.addr}</td><td>${n}</td><td>${x.lat?x.lat.toFixed(5)+' , '+x.lng.toFixed(5):'—'}</td></tr>`; }).join('');
+  }
   drawMap();
 }
 function drawMap(){
-  const el=document.getElementById('map');
-  if(typeof L==='undefined'){ el.innerHTML='<p class="note" style="padding:12px">الخريطة تحتاج اتصالاً بالإنترنت لتحميلها — باقي النظام يعمل بشكل طبيعي.</p>'; return; }
-  if(!map){
-    map=L.map('map').setView([30.0,31.05],9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
-  }
+  const el=document.getElementById('map'); if(!el || view!=='dash') return;
+  if(typeof L==='undefined'){ el.innerHTML='<p class="note" style="padding:12px">الخريطة تحتاج اتصالاً بالإنترنت — باقي النظام يعمل بشكل طبيعي.</p>'; return; }
+  if(!map){ map=L.map('map').setView([30.0,31.05],9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map); }
   markers.forEach(m=>map.removeLayer(m)); markers=[];
-  db.locations.forEach(l=>{
+  db.locations.forEach(l=>{ if(!l.lat) return;
     const la=db.assets.filter(a=>a.loc===l.id), ld=la.filter(a=>a.status==='done').length;
-    const m=L.marker([l.lat,l.lng]).addTo(map)
-      .bindPopup(`<b>${l.name}</b><br>${l.addr}<br>تم جرد ${ld} من ${la.length} أصل`);
-    m.on('click',()=>selectLoc(l.id)); markers.push(m);
-  });
+    const m=L.marker([l.lat,l.lng]).addTo(map).bindPopup(`<b>${l.name}</b><br>${l.addr}<br>تم جرد ${ld} من ${la.length} أصل`);
+    m.on('click',()=>selectLocGo(l.id)); markers.push(m); });
 }
 function selectLoc(id){ selLoc=id; render(); }
-function setStatus(code,st){ const a=db.assets.find(x=>x.code===code); if(a){a.status=st; save(); render();} }
+function selectLocGo(id){ selLoc=id; showView('count'); }
+function setStatus(code,st){ const a=db.assets.find(x=>x.code===code); if(a){ a.status=st; a.by=me.u; save(); render(); } }
 function scanCode(){
   const v=scanInput.value.trim().toUpperCase(); if(!v) return;
   const a=db.assets.find(x=>x.code===v);
   if(!a){ alert('الكود ده مش موجود في السجل'); return; }
-  selLoc=a.loc; a.status='done'; save(); render();
-  alert('تم جرد الأصل: '+a.name+' ('+a.code+')');
-  scanInput.value='';
+  selLoc=a.loc; a.status='done'; a.by=me.u; save(); render();
+  alert('تم جرد الأصل: '+a.name+' ('+a.code+')'); scanInput.value='';
 }
 function captureGPS(){
   if(!navigator.geolocation){ gpsNote.textContent='المتصفح لا يدعم تحديد الموقع'; return; }
   gpsNote.textContent='جارٍ تحديد الموقع...';
-  navigator.geolocation.getCurrentPosition(p=>{
-    pendingGPS={lat:p.coords.latitude,lng:p.coords.longitude};
-    gpsNote.textContent='تم التقاط موقعك الحالي ✓ — هيتربط بالأصل عند الإضافة';
-  },()=>{ gpsNote.textContent='تعذر تحديد الموقع — تأكد من تفعيل GPS والسماح للمتصفح'; });
+  navigator.geolocation.getCurrentPosition(p=>{ pendingGPS={lat:p.coords.latitude,lng:p.coords.longitude};
+    gpsNote.textContent='تم التقاط موقعك الحالي ✓ — هيتربط بالأصل عند الإضافة'; },
+    ()=>{ gpsNote.textContent='تعذر تحديد الموقع — فعّل GPS واسمح للمتصفح'; });
 }
 function addAsset(){
   const name=fName.value.trim(); if(!name){ alert('اكتب اسم الأصل'); return; }
-  const n=db.assets.length+1, code='FA-2026-'+String(n).padStart(4,'0');
-  const loc=db.locations.find(x=>x.id===fLoc.value);
-  const a={code, name, cat:fCat.value.trim()||'عام', room:fRoom.value.trim()||'—', loc:fLoc.value, status:'wait'};
+  const code='FA-2026-'+String(db.assets.length+1).padStart(4,'0');
+  const a={code, name, cat:fCat.value.trim()||'عام', room:fRoom.value.trim()||'—', loc:fLoc.value, status:'wait', by:me.u};
   if(pendingGPS){ a.lat=pendingGPS.lat; a.lng=pendingGPS.lng; }
   db.assets.push(a); selLoc=a.loc; pendingGPS=null;
-  fName.value=fCat.value=fRoom.value=''; gpsNote.textContent='تمت إضافة الأصل '+code+' في '+locName(a.loc);
+  fName.value=fCat.value=fRoom.value=''; gpsNote.textContent='تمت إضافة الأصل '+code;
   save(); render();
 }
-function resetDemo(){ if(confirm('هترجع البيانات التجريبية الأصلية وهيتمسح أي تعديل. متأكد؟')){ db=structuredClone(seed); selLoc=db.locations[0].id; save(); render(); } }
-render();
+
+/* ---------- import / export ---------- */
+function downloadTemplate(){
+  const rows=[['الكود','اسم الأصل','التصنيف','الموقع','الدور/الأوضة'],
+    ['FA-2026-0001','لابتوب HP ProBook 450','أجهزة كمبيوتر',db.locations[0].name,'الدور الثاني — الحسابات'],
+    ['FA-2026-0002','طابعة ليزر Canon','معدات مكتبية',db.locations[0].name,'الدور الثاني — الحسابات']];
+  const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:16},{wch:30},{wch:18},{wch:28},{wch:26}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'الرصيد الافتتاحي');
+  XLSX.writeFile(wb,'قالب_الرصيد_الافتتاحي.xlsx');
+}
+function findLocId(name){
+  if(!name) return db.locations[0].id;
+  const t=String(name).trim();
+  let l=db.locations.find(x=>x.name===t)||db.locations.find(x=>x.name.includes(t)||t.includes(x.name));
+  if(l) return l.id;
+  const id='loc'+Date.now()+Math.floor(Math.random()*999);
+  db.locations.push({id,name:t,addr:'—',lat:null,lng:null}); return id;
+}
+function doImport(){
+  const f=impFile.files[0];
+  if(!f){ impMsg.textContent='اختار ملف الإكسيل الأول'; return; }
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
+      let added=0, skipped=0;
+      rows.slice(1).forEach(r=>{
+        if(!r || (!r[0] && !r[1])) return;
+        let code=String(r[0]||'').trim();
+        const name=String(r[1]||'').trim();
+        if(!name){ skipped++; return; }
+        if(!code) code='FA-2026-'+String(db.assets.length+added+1).padStart(4,'0');
+        if(db.assets.some(a=>a.code===code)){ skipped++; return; }
+        db.assets.push({code, name, cat:String(r[2]||'عام').trim(), room:String(r[4]||'—').trim(),
+                        loc:findLocId(r[3]), status:'wait'});
+        added++;
+      });
+      save(); render();
+      impMsg.textContent='تم رفع '+added+' أصل بنجاح'+(skipped?' — تم تخطي '+skipped+' صف (كود مكرر أو اسم فارغ)':'')+'. الأصول جاهزة الآن في شاشة تنفيذ الجرد.';
+    }catch(err){ impMsg.textContent='حدث خطأ في قراءة الملف — تأكد أنه ملف إكسيل سليم'; }
+  };
+  rd.readAsArrayBuffer(f);
+}
+function sheetFromAssets(list){
+  const rows=[['الكود','اسم الأصل','التصنيف','الموقع','الدور/الأوضة','الحالة']];
+  const st={done:'تم الجرد',miss:'غير موجود',wait:'لم يتم'};
+  list.forEach(a=>rows.push([a.code,a.name,a.cat,locName(a.loc),a.room,st[a.status]]));
+  const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:16},{wch:30},{wch:18},{wch:28},{wch:26},{wch:12}];
+  return ws;
+}
+function exportRegister(){
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,sheetFromAssets(db.assets),'سجل الأصول');
+  XLSX.writeFile(wb,'سجل_الأصول.xlsx');
+}
+function exportDiff(){
+  const list=db.assets.filter(a=>a.status!=='done');
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,sheetFromAssets(list),'الفروقات');
+  XLSX.writeFile(wb,'تقرير_الفروقات.xlsx');
+}
+
+/* ---------- users & locations admin ---------- */
+function addUser(){
+  const name=uName.value.trim(), u=uUser.value.trim().toLowerCase(), p=uPass.value, role=uRole.value;
+  if(!name||!u||!p){ uMsg.textContent='املى كل الخانات'; return; }
+  if(db.users.some(x=>x.u.toLowerCase()===u)){ uMsg.textContent='اسم المستخدم ده موجود قبل كدا'; return; }
+  db.users.push({u,p,name,role,active:true}); save(); render();
+  uName.value=uUser.value=uPass.value=''; uMsg.textContent='تمت إضافة المستخدم '+name;
+}
+function toggleUser(u){ const x=db.users.find(y=>y.u===u); if(x){ x.active=!x.active; save(); render(); } }
+function delUser(u){ if(confirm('حذف المستخدم ده نهائياً؟')){ db.users=db.users.filter(y=>y.u!==u); save(); render(); } }
+function captureLocGPS(){
+  if(!navigator.geolocation){ lMsg.textContent='المتصفح لا يدعم تحديد الموقع'; return; }
+  navigator.geolocation.getCurrentPosition(p=>{ lLat.value=p.coords.latitude.toFixed(6); lLng.value=p.coords.longitude.toFixed(6);
+    lMsg.textContent='تم التقاط موقعك الحالي ✓'; }, ()=>{ lMsg.textContent='تعذر تحديد الموقع'; });
+}
+function addLocation(){
+  const name=lName.value.trim(); if(!name){ lMsg.textContent='اكتب اسم الموقع'; return; }
+  const id='loc'+Date.now();
+  db.locations.push({id, name, addr:lAddr.value.trim()||'—',
+    lat:parseFloat(lLat.value)||null, lng:parseFloat(lLng.value)||null});
+  save(); render(); lName.value=lAddr.value=lLat.value=lLng.value=''; lMsg.textContent='تمت إضافة موقع: '+name;
+}
+function resetDemo(){ if(confirm('هترجع البيانات التجريبية الأصلية وهيتمسح أي تعديل. متأكد؟')){
+  db=structuredClone(seed); selLoc=db.locations[0].id; save(); render(); } }
+
+/* ---------- boot ---------- */
+(function(){
+  const s=localStorage.getItem(SKEY);
+  if(s){ const user=db.users.find(x=>x.u===s && x.active); if(user){ me=user; enterApp(); return; } }
+})();
 </script>
 </body>
 </html>
