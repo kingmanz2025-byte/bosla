@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوصلة | نظام جرد الأصول الثابتة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{--navy:#0d1b30;--gold:#c9a24b;--ivory:#f7f3ea;--ink:#1c222b;--mut:#6e685a;--line:#e9e3d5;--ok:#1e8e4f;--bad:#c0392b}
+  *{box-sizing:border-box;font-family:'Cairo',sans-serif}
+  body{margin:0;background:var(--ivory);color:var(--ink)}
+  header{background:var(--navy);color:#fff;padding:18px 20px;border-bottom:5px solid var(--gold)}
+  header .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;max-width:1100px;margin:auto}
+  .brand{font-size:34px;font-weight:900}
+  .brand small{display:block;font-size:14px;color:var(--gold);font-weight:700}
+  .htitle{text-align:left}
+  .htitle b{font-size:20px;display:block}
+  .htitle span{color:#a8b8ce;font-size:13px}
+  main{max-width:1100px;margin:auto;padding:16px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 3px 10px rgba(60,50,20,.10);padding:16px;margin-bottom:16px}
+  .card h2{margin:0 0 12px;font-size:20px;color:var(--navy);border-right:6px solid var(--gold);padding-right:10px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:#fff;border-radius:14px;box-shadow:0 3px 10px rgba(60,50,20,.10);padding:14px;text-align:center}
+  .stat b{font-size:30px;display:block;color:var(--navy)}
+  .stat span{color:var(--mut);font-size:14px}
+  .stat.ok b{color:var(--ok)} .stat.bad b{color:var(--bad)}
+  #map{height:320px;border-radius:12px;z-index:1}
+  .locs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .loc{border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;background:#fff}
+  .loc.sel{border-color:var(--gold);background:#fdfaf2}
+  .loc b{font-size:17px;color:var(--navy)}
+  .loc .addr{color:var(--mut);font-size:13px}
+  .bar{height:10px;background:#eee7d6;border-radius:6px;margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--gold)}
+  .loc .pct{font-size:13px;color:var(--mut);margin-top:4px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;font-size:15px}
+  th{color:var(--navy)}
+  .chip{padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .chip.wait{background:#f3ead3;color:#8a6d1f}.chip.done{background:#e2f4e9;color:var(--ok)}.chip.miss{background:#fbe7e3;color:var(--bad)}
+  button{border:0;border-radius:9px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:14px}
+  .b-ok{background:var(--ok);color:#fff}.b-bad{background:#fff;color:var(--bad);border:1.5px solid var(--bad)}
+  .b-gold{background:var(--gold);color:#fff}.b-navy{background:var(--navy);color:#fff}
+  .b-ghost{background:#fff;border:1.5px solid var(--line);color:var(--mut)}
+  input,select{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-size:15px;background:#fff}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .scanrow{display:flex;gap:8px}.scanrow input{flex:1}
+  .note{color:var(--mut);font-size:13px}
+  footer{background:var(--navy);color:#dfe6ef;text-align:center;padding:20px 14px;margin-top:8px;border-top:5px solid var(--gold)}
+  footer .ph{color:#fff;font-weight:800;font-size:19px}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)} th:nth-child(4),td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <div class="brand">بوصلة<small>للحلول والخدمات والاستشارات</small></div>
+    <div class="htitle"><b>نظام جرد الأصول الثابتة</b><span>نسخة تجريبية — شركة النور للتجارة (بيانات وهمية للتجربة)</span></div>
+  </div>
+</header>
+<main>
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><b id="stTotal">0</b><span>إجمالي الأصول</span></div>
+    <div class="stat ok"><b id="stDone">0</b><span>تم جردها</span></div>
+    <div class="stat"><b id="stWait">0</b><span>متبقية</span></div>
+    <div class="stat bad"><b id="stMiss">0</b><span>فروقات (غير موجود)</span></div>
+  </div>
+
+  <div class="card">
+    <h2>مواقع الشركة على الخريطة</h2>
+    <div id="map"></div>
+    <p class="note">كل موقع متعلم بإحداثيات GPS، وكل أصل مربوط بموقعه عشان الوصول له يوم الجرد يبقى مباشر.</p>
+  </div>
+
+  <div class="card">
+    <h2>مواقع الجرد</h2>
+    <div class="locs" id="locs"></div>
+  </div>
+
+  <div class="card">
+    <h2 id="assetsTitle">أصول الموقع</h2>
+    <div class="scanrow" style="margin-bottom:12px">
+      <input id="scanInput" placeholder="امسح كود التاج أو اكتبه هنا (مثال: FA-2026-0003) واضغط جرد">
+      <button class="b-gold" onclick="scanCode()">جرد بالكود</button>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>الكود</th><th>الأصل</th><th>المكان</th><th>التصنيف</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody id="assetsBody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>إضافة أصل جديد</h2>
+    <div class="grid">
+      <input id="fName" placeholder="اسم الأصل (مثال: لابتوب HP)">
+      <input id="fCat" placeholder="التصنيف (مثال: أجهزة كمبيوتر)">
+      <input id="fRoom" placeholder="الدور / الأوضة (مثال: الدور الثاني - الحسابات)">
+      <select id="fLoc"></select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="b-navy" onclick="captureGPS()">📍 التقاط موقع GPS الحالي</button>
+      <button class="b-gold" onclick="addAsset()">إضافة الأصل</button>
+      <span class="note" id="gpsNote" style="align-self:center">لو ضغطت التقاط الموقع وانت واقف عند الأصل، هيتسجل مكانه بالظبط على الخريطة.</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin:6px 0 14px">
+    <button class="b-ghost" onclick="resetDemo()">إعادة تعيين البيانات التجريبية</button>
+  </div>
+</main>
+<footer>
+  <div>© 2026 مكتب بوصلة للحلول والخدمات والاستشارات — جميع الحقوق محفوظة</div>
+  <div class="ph">01558387711</div>
+  <div style="font-size:13px;color:#a8b8ce">تليفون وواتساب</div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const KEY='bosala_demo_v1';
+const seed={
+  locations:[
+    {id:'hq', name:'المقر الرئيسي — الجيزة', addr:'شارع الهرم، الجيزة', lat:30.0131, lng:31.2089},
+    {id:'faisal', name:'فرع فيصل', addr:'شارع فيصل الرئيسي، الجيزة', lat:29.9985, lng:31.1770},
+    {id:'oct', name:'مخزن 6 أكتوبر', addr:'المنطقة الصناعية، 6 أكتوبر', lat:29.9285, lng:30.9188}
+  ],
+  assets:[
+    {code:'FA-2026-0001',name:'لابتوب HP ProBook 450',cat:'أجهزة كمبيوتر',room:'الدور الثاني — الحسابات',loc:'hq',status:'wait'},
+    {code:'FA-2026-0002',name:'طابعة ليزر Canon',cat:'معدات مكتبية',room:'الدور الثاني — الحسابات',loc:'hq',status:'wait'},
+    {code:'FA-2026-0003',name:'خزينة حديد كبيرة',cat:'أثاث ومعدات',room:'الدور الأرضي — الخزينة',loc:'hq',status:'wait'},
+    {code:'FA-2026-0004',name:'شاشة سامسونج 27 بوصة',cat:'أجهزة كمبيوتر',room:'الدور الثاني — الإدارة',loc:'hq',status:'wait'},
+    {code:'FA-2026-0005',name:'ماكينة تصوير ريكو',cat:'معدات مكتبية',room:'الدور الأول — السكرتارية',loc:'hq',status:'wait'},
+    {code:'FA-2026-0006',name:'كاشير POS كامل',cat:'معدات بيع',room:'صالة البيع',loc:'faisal',status:'wait'},
+    {code:'FA-2026-0007',name:'تلاجة عرض 2 باب',cat:'معدات تبريد',room:'صالة البيع',loc:'faisal',status:'wait'},
+    {code:'FA-2026-0008',name:'تكييف سبليت 3 حصان',cat:'تكييفات',room:'صالة البيع',loc:'faisal',status:'wait'},
+    {code:'FA-2026-0009',name:'رفوف معدنية (وحدة)',cat:'تجهيزات مخازن',room:'المخزن الرئيسي',loc:'oct',status:'wait'},
+    {code:'FA-2026-0010',name:'رافعة شوكية يدوية',cat:'معدات مناولة',room:'المخزن الرئيسي',loc:'oct',status:'wait'},
+    {code:'FA-2026-0011',name:'ميزان إلكتروني صناعي',cat:'معدات قياس',room:'منطقة الاستلام',loc:'oct',status:'wait'},
+    {code:'FA-2026-0012',name:'سيرفر HP ProLiant',cat:'أجهزة كمبيوتر',room:'غرفة السيرفرات',loc:'hq',status:'wait'}
+  ]
+};
+let db;
+try{ db=JSON.parse(localStorage.getItem(KEY))||structuredClone(seed); }catch(e){ db=structuredClone(seed); }
+let selLoc=db.locations[0].id, map=null, markers=[], pendingGPS=null;
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
+function locName(id){ const l=db.locations.find(x=>x.id===id); return l?l.name:''; }
+
+function render(){
+  const total=db.assets.length, done=db.assets.filter(a=>a.status==='done').length,
+        miss=db.assets.filter(a=>a.status==='miss').length;
+  stTotal.textContent=total; stDone.textContent=done; stMiss.textContent=miss; stWait.textContent=total-done-miss;
+  // locations
+  locs.innerHTML=db.locations.map(l=>{
+    const la=db.assets.filter(a=>a.loc===l.id), ld=la.filter(a=>a.status==='done').length;
+    const pct=la.length?Math.round(ld/la.length*100):0;
+    return `<div class="loc ${l.id===selLoc?'sel':''}" onclick="selectLoc('${l.id}')">
+      <b>${l.name}</b><div class="addr">${l.addr}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="pct">تم جرد ${ld} من ${la.length} أصل — ${pct}%</div></div>`;
+  }).join('');
+  // assets of selected location
+  const l=db.locations.find(x=>x.id===selLoc);
+  assetsTitle.textContent='أصول: '+(l?l.name:'');
+  assetsBody.innerHTML=db.assets.filter(a=>a.loc===selLoc).map(a=>{
+    const chip=a.status==='done'?'<span class="chip done">تم الجرد</span>':
+               a.status==='miss'?'<span class="chip miss">غير موجود</span>':'<span class="chip wait">لم يتم</span>';
+    return `<tr><td><b>${a.code}</b></td><td>${a.name}</td><td>${a.room}</td><td>${a.cat}</td><td>${chip}</td>
+      <td style="white-space:nowrap">
+        <button class="b-ok" onclick="setStatus('${a.code}','done')">✓ جرد</button>
+        <button class="b-bad" onclick="setStatus('${a.code}','miss')">غير موجود</button>
+        ${a.status!=='wait'?`<button class="b-ghost" onclick="setStatus('${a.code}','wait')">إعادة</button>`:''}
+      </td></tr>`;
+  }).join('')||'<tr><td colspan="6">لا توجد أصول في هذا الموقع بعد</td></tr>';
+  // location select in form
+  fLoc.innerHTML=db.locations.map(x=>`<option value="${x.id}" ${x.id===selLoc?'selected':''}>${x.name}</option>`).join('');
+  drawMap();
+}
+function drawMap(){
+  const el=document.getElementById('map');
+  if(typeof L==='undefined'){ el.innerHTML='<p class="note" style="padding:12px">الخريطة تحتاج اتصالاً بالإنترنت لتحميلها — باقي النظام يعمل بشكل طبيعي.</p>'; return; }
+  if(!map){
+    map=L.map('map').setView([30.0,31.05],9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  }
+  markers.forEach(m=>map.removeLayer(m)); markers=[];
+  db.locations.forEach(l=>{
+    const la=db.assets.filter(a=>a.loc===l.id), ld=la.filter(a=>a.status==='done').length;
+    const m=L.marker([l.lat,l.lng]).addTo(map)
+      .bindPopup(`<b>${l.name}</b><br>${l.addr}<br>تم جرد ${ld} من ${la.length} أصل`);
+    m.on('click',()=>selectLoc(l.id)); markers.push(m);
+  });
+}
+function selectLoc(id){ selLoc=id; render(); }
+function setStatus(code,st){ const a=db.assets.find(x=>x.code===code); if(a){a.status=st; save(); render();} }
+function scanCode(){
+  const v=scanInput.value.trim().toUpperCase(); if(!v) return;
+  const a=db.assets.find(x=>x.code===v);
+  if(!a){ alert('الكود ده مش موجود في السجل'); return; }
+  selLoc=a.loc; a.status='done'; save(); render();
+  alert('تم جرد الأصل: '+a.name+' ('+a.code+')');
+  scanInput.value='';
+}
+function captureGPS(){
+  if(!navigator.geolocation){ gpsNote.textContent='المتصفح لا يدعم تحديد الموقع'; return; }
+  gpsNote.textContent='جارٍ تحديد الموقع...';
+  navigator.geolocation.getCurrentPosition(p=>{
+    pendingGPS={lat:p.coords.latitude,lng:p.coords.longitude};
+    gpsNote.textContent='تم التقاط موقعك الحالي ✓ — هيتربط بالأصل عند الإضافة';
+  },()=>{ gpsNote.textContent='تعذر تحديد الموقع — تأكد من تفعيل GPS والسماح للمتصفح'; });
+}
+function addAsset(){
+  const name=fName.value.trim(); if(!name){ alert('اكتب اسم الأصل'); return; }
+  const n=db.assets.length+1, code='FA-2026-'+String(n).padStart(4,'0');
+  const loc=db.locations.find(x=>x.id===fLoc.value);
+  const a={code, name, cat:fCat.value.trim()||'عام', room:fRoom.value.trim()||'—', loc:fLoc.value, status:'wait'};
+  if(pendingGPS){ a.lat=pendingGPS.lat; a.lng=pendingGPS.lng; }
+  db.assets.push(a); selLoc=a.loc; pendingGPS=null;
+  fName.value=fCat.value=fRoom.value=''; gpsNote.textContent='تمت إضافة الأصل '+code+' في '+locName(a.loc);
+  save(); render();
+}
+function resetDemo(){ if(confirm('هترجع البيانات التجريبية الأصلية وهيتمسح أي تعديل. متأكد؟')){ db=structuredClone(seed); selLoc=db.locations[0].id; save(); render(); } }
+render();
+</script>
+</body>
+</html>
